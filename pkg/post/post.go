@@ -23,9 +23,9 @@ type Post struct {
 	Votes            []*user.User `json:"votes"`
 }
 
-func NewPost(au string, cat string, tit string) *Post {
-	return &Post{Author: user.User{Id: "1", Username: au}, Category: cat, Title: tit}
-}
+//func NewPost(au string, cat string, tit string) *Post {
+//	return &Post{Author: user.User{Id: 1, Username: au}, Category: cat, Title: tit}
+//}
 
 type PostsRepo interface {
 	GetAll() ([]*Post, error)

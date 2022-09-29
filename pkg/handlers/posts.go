@@ -10,7 +10,7 @@ import (
 )
 
 type PostHandler struct {
-	PostStorage *post.PostsStorage
+	PostStorage post.PostsRepo
 }
 
 func (h *PostHandler) List(w http.ResponseWriter, r *http.Request) {

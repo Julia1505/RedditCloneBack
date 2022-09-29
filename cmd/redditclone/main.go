@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Julia1505/RedditCloneBack/pkg/middleware"
 	"github.com/Julia1505/RedditCloneBack/pkg/post"
+	"github.com/Julia1505/RedditCloneBack/pkg/user"
 	"github.com/gorilla/mux"
 	"html/template"
 	"log"
@@ -26,8 +27,9 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 func NewServer(port string) http.Server {
 	postStorage := post.NewPostsStorage()
-	post := post.NewPost("ds", "music", "dsadsad")
+	post := &post.Post{Author: user.User{Id: 2, Username: "dfs"}, Title: "dfghjk"}
 	post.Type = "text"
+	post.Category = "music"
 	post.Text = "sdfghjkl"
 	postStorage.AddPost(post)
 	postHandlers := &handlers.PostHandler{

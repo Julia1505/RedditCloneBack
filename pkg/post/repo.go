@@ -20,7 +20,7 @@ type PostsStorage struct {
 
 func NewPostsStorage() *PostsStorage {
 	return &PostsStorage{
-		lastId: 1,
+		lastId: 0,
 		data:   make([]*Post, 0, 10),
 		mu:     sync.RWMutex{},
 	}
