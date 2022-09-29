@@ -25,7 +25,9 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 func NewServer(port string) http.Server {
 	postStorage := post.NewPostsStorage()
-	post := post.NewPost("ds", "sad", "dsadsad")
+	post := post.NewPost("ds", "music", "dsadsad")
+	post.Type = "text"
+	post.Text = "sdfghjkl"
 	postStorage.AddPost(post)
 	postHandlers := &handlers.PostHandler{
 		PostStorage: postStorage,
@@ -37,7 +39,16 @@ func NewServer(port string) http.Server {
 
 	//siteMux.HandleFunc("/api/register", )
 	//siteMux.HandleFunc("/api/login",)
-	siteMux.HandleFunc("/api/posts/", postHandlers.List)
+	siteMux.HandleFunc("/api/posts/", postHandlers.List).Methods("GET")
+	siteMux.HandleFunc("/api/posts/", postHandlers.AddPost).Methods("POST")
+	siteMux.HandleFunc("/api/posts/{category_name}", postHandlers.CategoryList).Methods("GET")
+	siteMux.HandleFunc("/api/post/{post_id}", postHandlers.Post).Methods("GET")
+	//siteMux.HandleFunc("/api/post/{post_id}", postHandlers.).Methods("POST")
+	//siteMux.HandleFunc("/api/post/{post_id}/{comment_id}").Methods("DELETE")
+	//siteMux.HandleFunc("/api/post/{post_id}/upvote", postHandlers.).Methods("GET")
+	//siteMux.HandleFunc("/api/post/{post_id}/downvote", postHandlers.).Methods("GET")
+	//siteMux.HandleFunc("/api/post/{post_id}", postHandlers.).Methods("DELETE")
+	//siteMux.HandleFunc("/api/user/{user_login}", postHandlers.).Methods("GET")
 
 	return http.Server{
 		Addr:         port,
