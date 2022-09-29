@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/Julia1505/RedditCloneBack/pkg/post"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -21,6 +20,7 @@ func (h *PostHandler) List(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(elems)
 }
 
@@ -30,13 +30,14 @@ func (h *PostHandler) CategoryList(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no category", http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(category)
-	elems, err := h.PostStorage.GetByCategory(category)
+	//fmt.Println(category)
+	elems, _ := h.PostStorage.GetByCategory(category)
 
-	if err != nil {
-		http.Error(w, "DB error", http.StatusInternalServerError)
-		return
-	}
+	//if err != nil {
+	//	http.Error(w, "DB error", http.StatusInternalServerError)
+	//	return
+	//}
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(elems)
 }
 
@@ -45,7 +46,7 @@ func (h *PostHandler) Post(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(vars["post_id"])
 	if err != nil {
 		http.Error(w, "uncorrect id", http.StatusInternalServerError)
-		fmt.Println(err)
+		//fmt.Println(err)
 		return
 	}
 
@@ -55,6 +56,7 @@ func (h *PostHandler) Post(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(elems)
 }
 
@@ -78,6 +80,6 @@ func (h *PostHandler) AddPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
-
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(elem)
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Julia1505/RedditCloneBack/pkg/middleware"
 	"github.com/Julia1505/RedditCloneBack/pkg/post"
 	"github.com/gorilla/mux"
 	"html/template"
@@ -33,26 +34,31 @@ func NewServer(port string) http.Server {
 		PostStorage: postStorage,
 	}
 
-	siteMux := mux.NewRouter()
-	siteMux.PathPrefix("/static/").Handler(handlers.StaticHandler)
-	siteMux.HandleFunc("/", indexHandler)
+	mux := mux.NewRouter()
+	mux.PathPrefix("/static/").Handler(handlers.StaticHandler)
+	mux.HandleFunc("/", indexHandler)
 
-	//siteMux.HandleFunc("/api/register", )
-	//siteMux.HandleFunc("/api/login",)
-	siteMux.HandleFunc("/api/posts/", postHandlers.List).Methods("GET")
-	siteMux.HandleFunc("/api/posts/", postHandlers.AddPost).Methods("POST")
-	siteMux.HandleFunc("/api/posts/{category_name}", postHandlers.CategoryList).Methods("GET")
-	siteMux.HandleFunc("/api/post/{post_id}", postHandlers.Post).Methods("GET")
-	//siteMux.HandleFunc("/api/post/{post_id}", postHandlers.).Methods("POST")
-	//siteMux.HandleFunc("/api/post/{post_id}/{comment_id}").Methods("DELETE")
-	//siteMux.HandleFunc("/api/post/{post_id}/upvote", postHandlers.).Methods("GET")
-	//siteMux.HandleFunc("/api/post/{post_id}/downvote", postHandlers.).Methods("GET")
-	//siteMux.HandleFunc("/api/post/{post_id}", postHandlers.).Methods("DELETE")
-	//siteMux.HandleFunc("/api/user/{user_login}", postHandlers.).Methods("GET")
+	apiRouter := mux.PathPrefix("/api").Subrouter()
+
+	//siteMux.HandleFunc("/register", )
+	//siteMux.HandleFunc("/login",)
+	apiRouter.HandleFunc("/posts/", postHandlers.List).Methods("GET")
+	apiRouter.HandleFunc("/posts/", postHandlers.AddPost).Methods("POST")
+	apiRouter.HandleFunc("/posts/{category_name}", postHandlers.CategoryList).Methods("GET")
+	apiRouter.HandleFunc("/post/{post_id}", postHandlers.Post).Methods("GET")
+	//siteMux.HandleFunc("/post/{post_id}", postHandlers.).Methods("POST")
+	//siteMux.HandleFunc("/post/{post_id}/{comment_id}").Methods("DELETE")
+	//siteMux.HandleFunc("/post/{post_id}/upvote", postHandlers.).Methods("GET")
+	//siteMux.HandleFunc("/post/{post_id}/downvote", postHandlers.).Methods("GET")
+	//siteMux.HandleFunc("/post/{post_id}", postHandlers.).Methods("DELETE")
+	//siteMux.HandleFunc("/user/{user_login}", postHandlers.).Methods("GET")
+
+	allSiteMux := middleware.Logging(mux)
+	allSiteMux = middleware.PanicRecovery(allSiteMux)
 
 	return http.Server{
 		Addr:         port,
-		Handler:      siteMux,
+		Handler:      allSiteMux,
 		ReadTimeout:  100 * time.Second,
 		WriteTimeout: 100 * time.Second,
 	}
