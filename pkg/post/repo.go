@@ -2,6 +2,7 @@ package post
 
 import (
 	"errors"
+	"github.com/Julia1505/RedditCloneBack/pkg/utils"
 	"sync"
 )
 
@@ -13,16 +14,14 @@ var (
 )
 
 type PostsStorage struct {
-	lastId uint32
-	data   []*Post
-	mu     sync.RWMutex
+	data []*Post
+	mu   sync.RWMutex
 }
 
 func NewPostsStorage() *PostsStorage {
 	return &PostsStorage{
-		lastId: 0,
-		data:   make([]*Post, 0, 10),
-		mu:     sync.RWMutex{},
+		data: make([]*Post, 0, 10),
+		mu:   sync.RWMutex{},
 	}
 }
 
@@ -68,7 +67,7 @@ func (st *PostsStorage) GetByUser(username string) ([]*Post, error) {
 	return posts, nil
 }
 
-func (st *PostsStorage) GetById(id uint32) (*Post, error) {
+func (st *PostsStorage) GetById(id string) (*Post, error) {
 	st.mu.RLock()
 	defer st.mu.RUnlock()
 
@@ -81,29 +80,28 @@ func (st *PostsStorage) GetById(id uint32) (*Post, error) {
 	return nil, ErrInvalidId
 }
 
-func (st *PostsStorage) AddPost(post *Post) (uint32, error) {
+func (st *PostsStorage) AddPost(post *Post) (string, error) {
 	st.mu.Lock()
 	defer st.mu.Unlock()
-	st.lastId++
-	post.Id = st.lastId
+	post.Id = utils.GenarateId(24)
 	st.data = append(st.data, post)
-	return st.lastId, nil
+	return post.Id, nil
 }
 
-func (st *PostsStorage) UpdatePost(newPost *Post) (bool, error) {
+func (st *PostsStorage) UpdatePost(newPost *Post) (*Post, error) {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
 	for i, post := range st.data {
 		if post.Id == newPost.Id {
 			st.data[i] = newPost
-			return true, nil
+			return st.data[i], nil
 		}
 	}
-	return false, ErrNotFoundPost
+	return nil, ErrNotFoundPost
 }
 
-func (st *PostsStorage) Delete(id uint32) (bool, error) {
+func (st *PostsStorage) Delete(id string) (bool, error) {
 	deleteInd := -1
 	st.mu.Lock()
 	defer st.mu.Unlock()

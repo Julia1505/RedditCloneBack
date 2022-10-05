@@ -2,6 +2,8 @@ package user
 
 import (
 	"errors"
+	"github.com/Julia1505/RedditCloneBack/pkg/jwt"
+	"github.com/Julia1505/RedditCloneBack/pkg/utils"
 	"sync"
 )
 
@@ -10,34 +12,33 @@ var (
 	ErrWrongPassword = errors.New("Wrong password")
 	ErrLoginIsBusy   = errors.New("This login is already busy")
 	ErrBadPassword   = errors.New("Bad password")
+	ErrUnauthorized  = errors.New("Unauthorized")
 )
 
 type UsersStorage struct {
-	lastId uint32
-	data   map[string]*User
-	mu     sync.RWMutex
+	data map[string]*User
+	mu   sync.RWMutex
 }
 
 func NewUsersStorage() *UsersStorage {
 	return &UsersStorage{
-		lastId: 0,
-		data:   make(map[string]*User, 5),
-		mu:     sync.RWMutex{},
+		data: make(map[string]*User, 5),
+		mu:   sync.RWMutex{},
 	}
 }
 
-//func (st *UsersStorage) Authorize(username, password string) (*User, error) {
-//	st.mu.RLock()
-//	defer st.mu.RUnlock()
-//
-//	user, ok := st.data[username]
-//	if !ok {
-//		return nil, ErrUserNotExist
-//	}
-//
-//
-//	return user, nil
-//}
+func (st *UsersStorage) GetByToken(tokenString string) (*User, error) {
+	user, err := jwt.ParseToken(tokenString)
+	if err != nil {
+		return nil, err
+	}
+
+	curUser, err := st.GetUser(user.Username)
+	if err != nil {
+		return nil, ErrUserNotExist
+	}
+	return curUser, nil
+}
 
 func (st *UsersStorage) CreateUser(username, password string) (*User, error) {
 	st.mu.Lock()
@@ -48,14 +49,14 @@ func (st *UsersStorage) CreateUser(username, password string) (*User, error) {
 	//}
 
 	user := NewUser(username, password)
-	st.lastId++
-	user.Id = st.lastId
+	user.Id = utils.GenarateId(24)
+	st.data[username] = user
 	return user, nil
 }
 
 func (st *UsersStorage) GetUser(username string) (*User, error) {
 	st.mu.RLock()
-	defer st.mu.Unlock()
+	defer st.mu.RUnlock()
 
 	user, ok := st.data[username]
 	if ok {

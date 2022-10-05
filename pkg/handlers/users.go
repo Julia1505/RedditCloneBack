@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/Julia1505/RedditCloneBack/pkg/jwt"
 	"github.com/Julia1505/RedditCloneBack/pkg/user"
 	"github.com/Julia1505/RedditCloneBack/pkg/utils"
@@ -17,7 +18,12 @@ type SignForm struct {
 	Password string `json:"password"`
 }
 
+type Token struct {
+	Token string `json:"token"`
+}
+
 func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
+
 	var form SignForm
 	err := json.NewDecoder(r.Body).Decode(&form)
 	defer r.Body.Close() // нужно ли??
@@ -38,19 +44,25 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "generate hash error", http.StatusInternalServerError)
 		return
 	}
-	newUser := user.NewUser(form.Username, form.Password)
 
-	newUser, err = h.UserStorage.CreateUser(newUser)
+	newUser, err := h.UserStorage.CreateUser(form.Username, form.Password)
 	if err != nil {
 		http.Error(w, "Can't sign up", http.StatusUnauthorized)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json") // TODO вынести в отдельную функцию с проверкой на ошибку
-	json.NewEncoder(w).Encode(newUser)
+	token, err := jwt.GenerateJWT(newUser.Id, newUser.Username)
+	if err != nil {
+		http.Error(w, "Can't create token", http.StatusInternalServerError)
+		return
+	}
+
+	utils.JSON(w, &Token{Token: token}, http.StatusCreated)
+	fmt.Println(h.UserStorage)
 }
 
 func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(h.UserStorage)
 	var form SignForm
 	err := json.NewDecoder(r.Body).Decode(&form)
 
@@ -61,7 +73,7 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	userIn, err := h.UserStorage.GetUser(form.Username)
 	if err != nil {
-		http.Error(w, "The user doesn't exist", http.StatusUnauthorized)
+		utils.ErrorJSON(w, "user not found", 401)
 		return
 	}
 
@@ -70,17 +82,12 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validToken, err := jwt.GenerateJWT(userIn.Username)
+	token, err := jwt.GenerateJWT(userIn.Id, userIn.Username)
 	if err != nil {
-		http.Error(w, "err token", http.StatusUnauthorized)
+		http.Error(w, "Can't create token", http.StatusInternalServerError)
 		return
 	}
 
-	var token jwt.Token
+	utils.JSON(w, &Token{Token: token}, http.StatusCreated)
 
-	token.Username = userIn.Username
-	token.TokenString = validToken
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(token)
 }
