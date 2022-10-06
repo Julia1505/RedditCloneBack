@@ -3,6 +3,7 @@ package post
 import (
 	"errors"
 	"sync"
+	"sync/atomic"
 )
 
 var (
@@ -72,6 +73,7 @@ func (st *PostsStorage) GetById(id string) (*Post, error) {
 
 	for _, post := range st.data {
 		if post.Id == id {
+			atomic.AddUint32(&post.Views, 1)
 			return post, nil
 		}
 	}

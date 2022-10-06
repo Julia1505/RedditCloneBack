@@ -15,7 +15,7 @@ type Post struct {
 	Text             string     `json:"text"`
 	Title            string     `json:"title"`
 	Type             string     `json:"type"`
-	UpvotePersentage int32      `json:"upvotePersentage"`
+	UpvotePercentage int32      `json:"upvotePercentage"`
 	Url              string     `json:"url,omitempty"`
 	Views            uint32     `json:"views"`
 	Votes            []*Vote    `json:"votes"`
@@ -30,7 +30,7 @@ func (p *Post) UpdateVotes() {
 	if len(p.Votes) == 0 {
 		return
 	}
-	p.UpvotePersentage = p.Score * 100 / int32(len(p.Votes))
+	p.UpvotePercentage = p.Score * 100 / int32(len(p.Votes))
 }
 
 func NewPost() *Post {
