@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
 	"time"
 )
@@ -37,7 +36,6 @@ func GenerateJWT(id, username string) (string, error) {
 	tokenString, err := token.SignedString(secretToken)
 
 	if err != nil {
-		fmt.Errorf("Jwt error: %s", err.Error())
 		return "", err
 	}
 

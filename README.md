@@ -14,6 +14,7 @@
 8. DELETE /api/post/{POST_ID}/{COMMENT_ID} - удаление комментария
 9. GET /api/post/{POST_ID}/upvote - рейтинг поста вверх 
 10. GET /api/post/{POST_ID}/downvote - рейтинг поста вниз
+11. GET /api/post/{POST_ID}/unvote - удаление голоса
 11. DELETE /api/post/{POST_ID} - удаление поста
 12. GET /api/user/{USER_LOGIN} - список постов пользователя
 

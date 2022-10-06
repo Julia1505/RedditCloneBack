@@ -1,22 +1,21 @@
 package post
 
 import (
+	"github.com/Julia1505/RedditCloneBack/pkg/utils"
 	"time"
 )
 
-//import "RedditCloneBack/pkg/user"
-
 type Post struct {
-	Id               string `json:"id"`
 	Author           `json:"author"`
 	Category         string     `json:"category"`
 	Comments         []*Comment `json:"comments"`
-	Title            string     `json:"title"`
-	Created          time.Time  `json:"created"` // мб исправить
+	Created          time.Time  `json:"created"`
+	Id               string     `json:"id"`
 	Score            int32      `json:"score"`
-	Type             string     `json:"type"`
 	Text             string     `json:"text"`
-	UpvotePersentage uint32     `json:"upvotePersentage"`
+	Title            string     `json:"title"`
+	Type             string     `json:"type"`
+	UpvotePersentage int32      `json:"upvotePersentage"`
 	Url              string     `json:"url,omitempty"`
 	Views            uint32     `json:"views"`
 	Votes            []*Vote    `json:"votes"`
@@ -27,9 +26,16 @@ type Author struct {
 	Username string `json:"username"`
 }
 
-//func NewPost(au string, cat string, tit string) *Post {
-//	return &Post{Author: user.User{Id: 1, Username: au}, Category: cat, Title: tit}
-//}
+func (p *Post) UpdateVotes() {
+	if len(p.Votes) == 0 {
+		return
+	}
+	p.UpvotePersentage = p.Score * 100 / int32(len(p.Votes))
+}
+
+func NewPost() *Post {
+	return &Post{Id: utils.GenarateId(24), Created: time.Now()}
+}
 
 type PostsRepo interface {
 	GetAll() ([]*Post, error)

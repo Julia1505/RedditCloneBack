@@ -2,7 +2,6 @@ package post
 
 import (
 	"errors"
-	"github.com/Julia1505/RedditCloneBack/pkg/utils"
 	"sync"
 )
 
@@ -83,7 +82,6 @@ func (st *PostsStorage) GetById(id string) (*Post, error) {
 func (st *PostsStorage) AddPost(post *Post) (string, error) {
 	st.mu.Lock()
 	defer st.mu.Unlock()
-	post.Id = utils.GenarateId(24)
 	st.data = append(st.data, post)
 	return post.Id, nil
 }

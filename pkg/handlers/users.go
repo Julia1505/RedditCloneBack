@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/Julia1505/RedditCloneBack/pkg/jwt"
 	"github.com/Julia1505/RedditCloneBack/pkg/user"
 	"github.com/Julia1505/RedditCloneBack/pkg/utils"
@@ -23,11 +22,8 @@ type Token struct {
 }
 
 func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
-
 	var form SignForm
 	err := json.NewDecoder(r.Body).Decode(&form)
-	defer r.Body.Close() // нужно ли??
-
 	if err != nil {
 		http.Error(w, "error in body", http.StatusInternalServerError)
 		return
@@ -35,7 +31,10 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.UserStorage.GetUser(form.Username)
 	if err == nil {
-		http.Error(w, "username is busy", http.StatusUnauthorized)
+		errorr := utils.MyError{Location: "body", Message: "already exist", Parametr: "username", Value: form.Username}
+		resp := &utils.ErrResp{Errors: make([]utils.MyError, 0, 1)}
+		resp.Errors = append(resp.Errors, errorr)
+		utils.JSON(w, resp, http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -45,7 +44,8 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newUser, err := h.UserStorage.CreateUser(form.Username, form.Password)
+	newUser := user.NewUser(form.Username, form.Password)
+	_, err = h.UserStorage.CreateUser(newUser)
 	if err != nil {
 		http.Error(w, "Can't sign up", http.StatusUnauthorized)
 		return
@@ -58,11 +58,9 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.JSON(w, &Token{Token: token}, http.StatusCreated)
-	fmt.Println(h.UserStorage)
 }
 
 func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(h.UserStorage)
 	var form SignForm
 	err := json.NewDecoder(r.Body).Decode(&form)
 
@@ -89,5 +87,4 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.JSON(w, &Token{Token: token}, http.StatusCreated)
-
 }

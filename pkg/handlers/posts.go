@@ -2,13 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/Julia1505/RedditCloneBack/pkg/post"
 	"github.com/Julia1505/RedditCloneBack/pkg/user"
 	"github.com/Julia1505/RedditCloneBack/pkg/utils"
 	"github.com/gorilla/mux"
 	"net/http"
-	"time"
 )
 
 type PostHandler struct {
@@ -17,13 +15,11 @@ type PostHandler struct {
 
 func (h *PostHandler) List(w http.ResponseWriter, r *http.Request) {
 	elems, err := h.PostStorage.GetAll()
-
 	if err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(elems)
+	utils.JSON(w, elems, http.StatusOK)
 }
 
 func (h *PostHandler) CategoryList(w http.ResponseWriter, r *http.Request) {
@@ -32,10 +28,10 @@ func (h *PostHandler) CategoryList(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no category", http.StatusInternalServerError)
 		return
 	}
-	elems, err := h.PostStorage.GetByCategory(category)
 
+	elems, err := h.PostStorage.GetByCategory(category)
 	if err != nil {
-		http.Error(w, "DB error", http.StatusInternalServerError)
+		utils.JSON(w, elems, http.StatusOK)
 		return
 	}
 	utils.JSON(w, elems, http.StatusOK)
@@ -47,6 +43,7 @@ func (h *PostHandler) UserList(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no category", http.StatusInternalServerError)
 		return
 	}
+
 	elems, err := h.PostStorage.GetByUser(username)
 	if err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
@@ -56,32 +53,25 @@ func (h *PostHandler) UserList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PostHandler) Post(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, ok := vars["post_id"]
+	id, ok := mux.Vars(r)["post_id"]
 	if !ok {
 		http.Error(w, "uncorrect id", http.StatusInternalServerError)
-		//fmt.Println(err)
 		return
 	}
 
 	elem, err := h.PostStorage.GetById(id)
-
 	if err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
-	//fmt.Println(elem.Votes[0])
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(elem)
+	utils.JSON(w, elem, http.StatusOK)
 }
 
 func (h *PostHandler) AddPost(w http.ResponseWriter, r *http.Request) {
-	elem := &post.Post{}
-	fmt.Println(r.Body)
+	elem := post.NewPost()
 	err := json.NewDecoder(r.Body).Decode(elem)
-
 	if err != nil {
-		http.Error(w, "decoed err", http.StatusInternalServerError)
+		http.Error(w, "decode err", http.StatusInternalServerError)
 		return
 	}
 
@@ -98,7 +88,7 @@ func (h *PostHandler) AddPost(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "no text", http.StatusInternalServerError)
 			return
 		}
-	case "url":
+	case "link":
 		if elem.Url == "" {
 			http.Error(w, "no url", http.StatusInternalServerError)
 			return
@@ -107,11 +97,12 @@ func (h *PostHandler) AddPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unknown type of post", http.StatusInternalServerError)
 		return
 	}
+
 	newVote := post.NewVote(curUser.Id, 1)
 	elem.Votes = append(elem.Votes, newVote)
 	elem.Score = 1
+	elem.UpdateVotes()
 
-	elem.Created = time.Now()
 	_, err = h.PostStorage.AddPost(elem)
 	if err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
@@ -129,12 +120,11 @@ func (h *PostHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 	postId := mux.Vars(r)["post_id"]
 	elem := &BodyCom{}
 	err := json.NewDecoder(r.Body).Decode(&elem)
-	newComment := &post.Comment{}
-
 	if err != nil {
 		http.Error(w, "decoed err", http.StatusInternalServerError)
 		return
 	}
+	newComment := post.NewComment()
 	newComment.Body = elem.Comment
 
 	curUser, err := user.FromContext(r.Context())
@@ -143,7 +133,6 @@ func (h *PostHandler) AddComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	newComment.Author = post.Author{Id: curUser.Id, Username: curUser.Username}
-	newComment.Id = utils.GenarateId(24)
 
 	curPost, err := h.PostStorage.GetById(postId)
 	if err != nil {
@@ -238,12 +227,12 @@ func (h PostHandler) UpVote(w http.ResponseWriter, r *http.Request) {
 		curPost.Votes[voteIndex].Vote = 1
 		curPost.Score += 2
 	}
+	curPost.UpdateVotes()
 	_, err = h.PostStorage.UpdatePost(curPost)
 	if err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(curPost.Votes[0])
 	utils.JSON(w, curPost, http.StatusOK)
 }
 
@@ -277,12 +266,12 @@ func (h PostHandler) DownVote(w http.ResponseWriter, r *http.Request) {
 		curPost.Votes[voteIndex].Vote = -1
 		curPost.Score -= 2
 	}
+	curPost.UpdateVotes()
 	_, err = h.PostStorage.UpdatePost(curPost)
 	if err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(curPost.Votes[0])
 	utils.JSON(w, curPost, http.StatusOK)
 }
 
@@ -324,11 +313,11 @@ func (h PostHandler) UnVote(w http.ResponseWriter, r *http.Request) {
 		curPost.Votes[len(curPost.Votes)-1] = nil
 		curPost.Votes = curPost.Votes[:len(curPost.Votes)-1]
 	}
+	curPost.UpdateVotes()
 	_, err = h.PostStorage.UpdatePost(curPost)
 	if err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
-	//fmt.Println(curPost.Votes[0])
 	utils.JSON(w, curPost, http.StatusOK)
 }

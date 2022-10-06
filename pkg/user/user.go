@@ -1,6 +1,9 @@
 package user
 
-import "context"
+import (
+	"context"
+	"github.com/Julia1505/RedditCloneBack/pkg/utils"
+)
 
 type User struct {
 	Id           string `json:"id"`
@@ -10,6 +13,7 @@ type User struct {
 
 func NewUser(username, passwordHash string) *User {
 	return &User{
+		Id:           utils.GenarateId(24),
 		Username:     username,
 		PasswordHash: passwordHash,
 	}
@@ -24,7 +28,7 @@ func FromContext(ctx context.Context) (*User, error) {
 }
 
 type UsersRepo interface {
-	CreateUser(username, password string) (*User, error)
+	CreateUser(newUser *User) (*User, error)
 	GetUser(username string) (*User, error)
 	GetByToken(tokenString string) (*User, error)
 }

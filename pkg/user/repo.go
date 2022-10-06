@@ -3,16 +3,12 @@ package user
 import (
 	"errors"
 	"github.com/Julia1505/RedditCloneBack/pkg/jwt"
-	"github.com/Julia1505/RedditCloneBack/pkg/utils"
 	"sync"
 )
 
 var (
-	ErrUserNotExist  = errors.New("User is not exist")
-	ErrWrongPassword = errors.New("Wrong password")
-	ErrLoginIsBusy   = errors.New("This login is already busy")
-	ErrBadPassword   = errors.New("Bad password")
-	ErrUnauthorized  = errors.New("Unauthorized")
+	ErrUserNotExist = errors.New("User is not exist")
+	ErrUnauthorized = errors.New("Unauthorized")
 )
 
 type UsersStorage struct {
@@ -40,18 +36,12 @@ func (st *UsersStorage) GetByToken(tokenString string) (*User, error) {
 	return curUser, nil
 }
 
-func (st *UsersStorage) CreateUser(username, password string) (*User, error) {
+func (st *UsersStorage) CreateUser(newUser *User) (*User, error) {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 
-	//if password == "" { //TODO добавить норм проверку пароля
-	//	return nil, ErrBadPassword
-	//}
-
-	user := NewUser(username, password)
-	user.Id = utils.GenarateId(24)
-	st.data[username] = user
-	return user, nil
+	st.data[newUser.Username] = newUser
+	return newUser, nil
 }
 
 func (st *UsersStorage) GetUser(username string) (*User, error) {
