@@ -96,21 +96,12 @@ func (bd *PostsMongo) AddPost(post *Post) (string, error) {
 }
 
 func (bd *PostsMongo) UpdatePost(post *Post) (*Post, error) {
-	if !bson.IsObjectIdHex(string(post.Id)) {
-		return nil, ErrNotFound
-	}
 
-	oldPost := &Post{}
-	err := bd.DB.Find(bson.M{"id": oldPost.Id}).One(post)
+	err := bd.DB.Update(bson.M{"id": post.Id}, post)
 	if err != nil {
 		fmt.Errorf("bd can't update: %w", err)
 		return nil, err
 	}
-
-	oldPost.Comments = post.Comments
-	oldPost.Score = post.Score
-	oldPost.UpvotePercentage = post.UpvotePercentage
-	oldPost.Votes = post.Votes
 
 	return post, nil
 }

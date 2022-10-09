@@ -240,7 +240,7 @@ func (h PostHandler) DownVote(w http.ResponseWriter, r *http.Request) {
 	postId := mux.Vars(r)["post_id"]
 	curPost, err := h.PostStorage.GetById(postId)
 	if err != nil {
-		http.Error(w, "DB error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -269,7 +269,7 @@ func (h PostHandler) DownVote(w http.ResponseWriter, r *http.Request) {
 	curPost.UpdateVotes()
 	_, err = h.PostStorage.UpdatePost(curPost)
 	if err != nil {
-		http.Error(w, "DB error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	utils.JSON(w, curPost, http.StatusOK)
