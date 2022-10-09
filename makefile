@@ -19,3 +19,9 @@ build:
 
 run: build
 	./bin/redditclone
+
+bd:
+	docker compose up -d
+.PHONY:bd
+
+

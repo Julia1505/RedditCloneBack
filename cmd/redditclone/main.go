@@ -6,7 +6,12 @@ import (
 	"log"
 )
 
+//collection.Count()
+//collection.Insert
+//
+
 func main() {
+
 	myServer := server.NewServer(":8080")
 
 	fmt.Println("Server is listening 8080")

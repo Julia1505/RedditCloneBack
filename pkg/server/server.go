@@ -5,7 +5,6 @@ import (
 	"github.com/Julia1505/RedditCloneBack/pkg/middleware"
 	"github.com/Julia1505/RedditCloneBack/pkg/post"
 	"github.com/Julia1505/RedditCloneBack/pkg/user"
-	"github.com/Julia1505/RedditCloneBack/pkg/utils"
 	"github.com/gorilla/mux"
 	"net/http"
 	"time"
@@ -18,11 +17,7 @@ func NewServer(port string) http.Server {
 		UserStorage: userStorage,
 	}
 
-	postStorage := post.NewPostsStorage()
-	post := &post.Post{Author: post.Author{Id: "2", Username: "dfs"}, Title: "dfghjk", Type: "text", Category: "music", Text: "dfhcdjklsDAVBHSJKFBF",
-		Id: utils.GenarateId(24)}
-
-	postStorage.AddPost(post)
+	postStorage := post.NewPostsMongo()
 	postHandlers := &handlers.PostHandler{
 		PostStorage: postStorage,
 	}
