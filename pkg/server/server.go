@@ -12,7 +12,8 @@ import (
 
 func NewServer(port string) http.Server {
 
-	userStorage := user.NewUsersStorage()
+	//userStorage := user.NewUsersStorage()
+	userStorage := user.NewUsersSQL()
 	userHandlers := &handlers.UserHandler{
 		UserStorage: userStorage,
 	}
