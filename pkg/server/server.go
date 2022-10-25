@@ -1,6 +1,7 @@
 package server
 
 import (
+	"database/sql"
 	"github.com/Julia1505/RedditCloneBack/pkg/handlers"
 	"github.com/Julia1505/RedditCloneBack/pkg/middleware"
 	"github.com/Julia1505/RedditCloneBack/pkg/post"
@@ -11,9 +12,20 @@ import (
 )
 
 func NewServer(port string) http.Server {
+	dsn := "root:password@tcp(localhost:3306)/golang?"
+	dsn += "&charset=utf8"
+	dsn += "&interpolateParams=true"
+
+	db, err := sql.Open("mysql", dsn)
+	db.SetMaxOpenConns(10)
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
 
 	//userStorage := user.NewUsersStorage()
-	userStorage := user.NewUsersSQL()
+	userStorage := user.NewUsersSQL(db)
 	userHandlers := &handlers.UserHandler{
 		UserStorage: userStorage,
 	}

@@ -11,18 +11,7 @@ type UsersSQL struct {
 	DB *sql.DB
 }
 
-func NewUsersSQL() *UsersSQL {
-	dsn := "root:password@tcp(localhost:3306)/golang?"
-	dsn += "&charset=utf8"
-	dsn += "&interpolateParams=true"
-
-	db, err := sql.Open("mysql", dsn)
-	db.SetMaxOpenConns(10)
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-
+func NewUsersSQL(db *sql.DB) *UsersSQL {
 	return &UsersSQL{DB: db}
 }
 
