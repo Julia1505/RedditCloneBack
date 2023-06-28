@@ -22,7 +22,7 @@ func NewServer(port string) http.Server {
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	//defer db.Close()
 
 	//userStorage := user.NewUsersStorage()
 	userStorage := user.NewUsersSQL(db)
