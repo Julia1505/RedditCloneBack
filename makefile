@@ -19,3 +19,12 @@ build:
 
 run: build
 	./bin/redditclone
+
+bd:
+	docker compose up -d
+.PHONY:bd
+
+test: build
+	 go test -coverprofile=cover.out ./pkg/user/ && go tool cover -html=cover.out -o cover.html
+
+

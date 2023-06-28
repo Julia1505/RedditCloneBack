@@ -1,40 +1,40 @@
 package post
 
 import (
-	"github.com/Julia1505/RedditCloneBack/pkg/utils"
+	"gopkg.in/mgo.v2/bson"
 	"time"
 )
 
 type Post struct {
-	Author           `json:"author"`
-	Category         string     `json:"category"`
-	Comments         []*Comment `json:"comments"`
-	Created          time.Time  `json:"created"`
-	Id               string     `json:"id"`
-	Score            int32      `json:"score"`
-	Text             string     `json:"text"`
-	Title            string     `json:"title"`
-	Type             string     `json:"type"`
-	UpvotePersentage int32      `json:"upvotePersentage"`
-	Url              string     `json:"url,omitempty"`
-	Views            uint32     `json:"views"`
-	Votes            []*Vote    `json:"votes"`
+	Author           `json:"author" bson:"author"`
+	Category         string        `json:"category" bson:"category"`
+	Comments         []*Comment    `json:"comments" bson:"comments"`
+	Created          time.Time     `json:"created" bson:"created"`
+	Id               bson.ObjectId `json:"id" bson:"id"`
+	Score            int32         `json:"score" bson:"score"`
+	Text             string        `json:"text" bson:"text"`
+	Title            string        `json:"title" bson:"title"`
+	Type             string        `json:"type" bson:"type"`
+	UpvotePercentage int32         `json:"upvotePercentage" bson:"upvotePercentage"`
+	Url              string        `json:"url,omitempty" bson:"url"`
+	Views            uint32        `json:"views" bson:"views"`
+	Votes            []*Vote       `json:"votes" bson:"votes"`
 }
 
 type Author struct {
 	Id       string `json:"id"`
-	Username string `json:"username"`
+	Username string `json:"username" bson:"username"`
 }
 
 func (p *Post) UpdateVotes() {
 	if len(p.Votes) == 0 {
 		return
 	}
-	p.UpvotePersentage = p.Score * 100 / int32(len(p.Votes))
+	p.UpvotePercentage = p.Score * 100 / int32(len(p.Votes))
 }
 
 func NewPost() *Post {
-	return &Post{Id: utils.GenarateId(24), Created: time.Now()}
+	return &Post{Id: bson.NewObjectId(), Created: time.Now()}
 }
 
 type PostsRepo interface {

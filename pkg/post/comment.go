@@ -6,10 +6,10 @@ import (
 )
 
 type Comment struct {
-	Author  Author    `json:"author"`
-	Body    string    `json:"body"`
-	Created time.Time `json:"created"`
-	Id      string    `json:"id"`
+	Author  Author    `json:"author" bson:"author"`
+	Body    string    `json:"body" bson:"body"`
+	Created time.Time `json:"created" bson:"created"`
+	Id      string    `json:"id" bson:"id"`
 }
 
 func NewComment() *Comment {

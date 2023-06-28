@@ -1,0 +1,257 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>user: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/Julia1505/RedditCloneBack/pkg/user/repo_memory.go (0.0%)</option>
+				
+				<option value="file1">github.com/Julia1505/RedditCloneBack/pkg/user/repo_sql.go (52.6%)</option>
+				
+				<option value="file2">github.com/Julia1505/RedditCloneBack/pkg/user/user.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package user
+
+import (
+        "errors"
+        "github.com/Julia1505/RedditCloneBack/pkg/jwt"
+        "sync"
+)
+
+var (
+        ErrUserNotExist = errors.New("User is not exist")
+        ErrUnauthorized = errors.New("Unauthorized")
+)
+
+type UsersStorage struct {
+        data map[string]*User
+        mu   sync.RWMutex
+}
+
+func NewUsersStorage() *UsersStorage <span class="cov0" title="0">{
+        return &amp;UsersStorage{
+                data: make(map[string]*User, 5),
+                mu:   sync.RWMutex{},
+        }
+}</span>
+
+func (st *UsersStorage) GetByToken(tokenString string) (*User, error) <span class="cov0" title="0">{
+        user, err := jwt.ParseToken(tokenString)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">curUser, err := st.GetUser(user.Username)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, ErrUserNotExist
+        }</span>
+        <span class="cov0" title="0">return curUser, nil</span>
+}
+
+func (st *UsersStorage) CreateUser(newUser *User) (*User, error) <span class="cov0" title="0">{
+        st.mu.Lock()
+        defer st.mu.Unlock()
+
+        st.data[newUser.Username] = newUser
+        return newUser, nil
+}</span>
+
+func (st *UsersStorage) GetUser(username string) (*User, error) <span class="cov0" title="0">{
+        st.mu.RLock()
+        defer st.mu.RUnlock()
+
+        user, ok := st.data[username]
+        if ok </span><span class="cov0" title="0">{
+                return user, nil
+        }</span> else<span class="cov0" title="0"> {
+                return nil, ErrUserNotExist
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package user
+
+import (
+        "database/sql"
+        "fmt"
+        "github.com/Julia1505/RedditCloneBack/pkg/jwt"
+        _ "github.com/go-sql-driver/mysql"
+)
+
+type UsersSQL struct {
+        DB *sql.DB
+}
+
+func NewUsersSQL(db *sql.DB) *UsersSQL <span class="cov0" title="0">{
+        return &amp;UsersSQL{DB: db}
+}</span>
+
+func (bd *UsersSQL) CreateUser(newUser *User) (*User, error) <span class="cov8" title="1">{
+        result, err := bd.DB.Exec(
+                "INSERT INTO users (`id`, `username`, `passwordhash`) VALUES (?, ?, ?)",
+                newUser.Id,
+                newUser.Username,
+                newUser.PasswordHash,
+        )
+
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">fmt.Println(result.RowsAffected())
+        return newUser, nil</span>
+}
+
+func (bd *UsersSQL) GetUser(username string) (*User, error) <span class="cov8" title="1">{
+        row := bd.DB.QueryRow("SELECT id, username, passwordhash FROM users WHERE username = ?", username)
+        curUser := &amp;User{}
+        err := row.Scan(&amp;curUser.Id, &amp;curUser.Username, &amp;curUser.PasswordHash)
+
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return curUser, nil</span>
+}
+
+func (bd *UsersSQL) GetByToken(tokenString string) (*User, error) <span class="cov0" title="0">{
+        user, err := jwt.ParseToken(tokenString)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">curUser, err := bd.GetUser(user.Username)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, ErrUserNotExist
+        }</span>
+        <span class="cov0" title="0">return curUser, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package user
+
+import (
+        "context"
+        "github.com/Julia1505/RedditCloneBack/pkg/utils"
+)
+
+type User struct {
+        Id           string `json:"id"`
+        Username     string `json:"username"`
+        PasswordHash string `json:"_"`
+}
+
+func NewUser(username, passwordHash string) *User <span class="cov0" title="0">{
+        return &amp;User{
+                Id:           utils.GenarateId(24),
+                Username:     username,
+                PasswordHash: passwordHash,
+        }
+}</span>
+
+func FromContext(ctx context.Context) (*User, error) <span class="cov0" title="0">{
+        user, ok := ctx.Value("user").(*User)
+        if ok </span><span class="cov0" title="0">{
+                return user, nil
+        }</span>
+        <span class="cov0" title="0">return nil, ErrUnauthorized</span>
+}
+
+type UsersRepo interface {
+        CreateUser(newUser *User) (*User, error)
+        GetUser(username string) (*User, error)
+        GetByToken(tokenString string) (*User, error)
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

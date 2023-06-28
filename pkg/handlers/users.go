@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/Julia1505/RedditCloneBack/pkg/jwt"
 	"github.com/Julia1505/RedditCloneBack/pkg/user"
 	"github.com/Julia1505/RedditCloneBack/pkg/utils"
@@ -47,6 +48,7 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	newUser := user.NewUser(form.Username, form.Password)
 	_, err = h.UserStorage.CreateUser(newUser)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(w, "Can't sign up", http.StatusUnauthorized)
 		return
 	}

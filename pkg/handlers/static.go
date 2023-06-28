@@ -6,9 +6,8 @@ import (
 	"net/http"
 )
 
-var tpl = template.Must(template.ParseFiles("./static/html/index.html"))
-
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	var tpl = template.Must(template.ParseFiles("./static/html/index.html"))
 	err := tpl.Execute(w, nil)
 	if err != nil {
 		log.Println("err: %w", err)

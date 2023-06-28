@@ -2,7 +2,9 @@ package post
 
 import (
 	"errors"
+	"gopkg.in/mgo.v2/bson"
 	"sync"
+	"sync/atomic"
 )
 
 var (
@@ -71,7 +73,8 @@ func (st *PostsStorage) GetById(id string) (*Post, error) {
 	defer st.mu.RUnlock()
 
 	for _, post := range st.data {
-		if post.Id == id {
+		if post.Id == bson.ObjectId(id) {
+			atomic.AddUint32(&post.Views, 1)
 			return post, nil
 		}
 	}
@@ -83,7 +86,7 @@ func (st *PostsStorage) AddPost(post *Post) (string, error) {
 	st.mu.Lock()
 	defer st.mu.Unlock()
 	st.data = append(st.data, post)
-	return post.Id, nil
+	return string(post.Id), nil
 }
 
 func (st *PostsStorage) UpdatePost(newPost *Post) (*Post, error) {
@@ -105,7 +108,7 @@ func (st *PostsStorage) Delete(id string) (bool, error) {
 	defer st.mu.Unlock()
 
 	for i, post := range st.data {
-		if post.Id == id {
+		if post.Id == bson.ObjectId(id) {
 			deleteInd = i
 			break
 		}
